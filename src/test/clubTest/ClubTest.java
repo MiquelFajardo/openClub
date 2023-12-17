@@ -110,7 +110,7 @@ public class ClubTest {
     public void testObtenirTotsClubs() {
         clubDAO.emmagatzemar(club2);
         List<Club> clubs = clubDAO.obtenirTot();
-        assertTrue(clubs.size() == 2);
+        assertEquals(2, clubs.size());
     }
 
     @AfterAll

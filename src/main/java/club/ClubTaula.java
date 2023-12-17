@@ -3,7 +3,6 @@ package main.java.club;
 import main.java.utilitats.JDBC;
 
 import java.sql.Connection;
-import java.sql.Date;
 
 /**
  * Taula club
