@@ -1,5 +1,7 @@
 package main.java.informacioContacte.poblacio;
 
+import java.util.Objects;
+
 /**
  * Dades població
  *
@@ -33,4 +35,24 @@ public class Poblacio {
 
     public long getIdProvincia() { return idProvincia; }
     public void setIdProvincia(long idProvincia) { this.idProvincia = idProvincia; }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        Poblacio altrePoblacio = (Poblacio) obj;
+        return id == altrePoblacio.id
+                && Objects.equals(codiPostal, altrePoblacio.codiPostal)
+                && Objects.equals(nom, altrePoblacio.nom)
+                && Objects.equals(idProvincia, altrePoblacio.idProvincia);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, codiPostal, nom, idProvincia);
+    }
 }

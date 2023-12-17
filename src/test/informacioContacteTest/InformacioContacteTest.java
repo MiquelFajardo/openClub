@@ -28,6 +28,10 @@ public class InformacioContacteTest {
     private static Provincia provincia2;
     private static ProvinciaDAO provinciaDAO;
 
+    private static Poblacio poblacio1;
+    private static Poblacio poblacio2;
+    private static PoblacioDAO poblacioDAO;
+
     @BeforeAll
     public static void setupTest() throws SQLException {
         connexio = DriverManager.getConnection("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1");
@@ -41,6 +45,11 @@ public class InformacioContacteTest {
         provinciaDAO = new ProvinciaDAO(connexio);
         provincia1 = new Provincia(1, "Catalunya", 1);
         provincia2 = new Provincia(2, "Andalusia", 1);
+
+        PoblacioTaula.iniciar(connexio);
+        poblacioDAO = new PoblacioDAO(connexio);
+        poblacio1 = new Poblacio(1, "17244", "Cassa de la Selva", 1);
+        poblacio2 = new Poblacio(2, "17003", "Girona", 1);
     }
 
     @Test
@@ -138,6 +147,54 @@ public class InformacioContacteTest {
         provinciaDAO.emmagatzemar(provincia2);
         List<Provincia> provinces = provinciaDAO.obtenirTot();
         assertEquals(2, provinces.size());
+    }
+
+    @Test
+    @Order(9)
+    public void testEmmagatzemarPoblacio() throws SQLException {
+        boolean resultat = false;
+        poblacioDAO.emmagatzemar(poblacio1);
+        String sentenciaSQL = "SELECT codi_postal, nom FROM poblacio";
+        Statement statement = connexio.createStatement();
+        ResultSet resultSet = statement.executeQuery(sentenciaSQL);
+        while (resultSet.next()) {
+            resultat = true;
+            assertEquals(resultSet.getString("codi_postal"), poblacio1.getCodiPostal());
+            assertEquals(resultSet.getString("nom"), poblacio1.getNom());
+        }
+        assertTrue(resultat);
+    }
+
+    @Test
+    @Order(10)
+    public void testModificarPoblacio() throws SQLException {
+        boolean resultat = false;
+        String nomNou = "Cassà de la Selva";
+        poblacio1.setNom(nomNou);
+        poblacioDAO.modificar(poblacio1);
+        String sentenciaSQL = "SELECT nom FROM poblacio";
+        Statement statement = connexio.createStatement();
+        ResultSet resultSet = statement.executeQuery(sentenciaSQL);
+        while (resultSet.next()) {
+            resultat = true;
+            assertEquals(resultSet.getString("nom"), nomNou);
+        }
+        assertTrue(resultat);
+    }
+
+    @Test
+    @Order(11)
+    public void testObtenirPoblacio() {
+        Poblacio poblacioObtinguda = poblacioDAO.obtenir(1L);
+        assertEquals(poblacioObtinguda.toString(), poblacio1.toString());
+    }
+
+    @Test
+    @Order(12)
+    public void testObtenirPoblacions() {
+        poblacioDAO.emmagatzemar(poblacio2);
+        List<Poblacio> poblacions = poblacioDAO.obtenirTot();
+        assertEquals(2, poblacions.size());
     }
 
     @AfterAll
