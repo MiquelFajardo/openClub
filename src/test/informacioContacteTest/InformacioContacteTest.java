@@ -8,6 +8,9 @@ import main.java.informacioContacte.adreca.Adreca;
 import main.java.informacioContacte.adreca.AdrecaDAO;
 import main.java.informacioContacte.adreca.AdrecaTaula;
 import main.java.informacioContacte.poblacio.*;
+import main.java.informacioContacte.telefon.Telefon;
+import main.java.informacioContacte.telefon.TelefonDAO;
+import main.java.informacioContacte.telefon.TelefonTaula;
 import org.junit.jupiter.api.*;
 
 import java.sql.*;
@@ -47,6 +50,11 @@ public class InformacioContacteTest {
     private static Adreca adreca2;
     private static AdrecaDAO adrecaDAO;
 
+    private static Telefon telefon1;
+    private static Telefon telefon2;
+    private static TelefonDAO telefonDAO;
+
+
     @BeforeAll
     public static void setupTest() throws SQLException {
         connexio = DriverManager.getConnection("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1");
@@ -77,6 +85,11 @@ public class InformacioContacteTest {
         adrecaDAO = new AdrecaDAO(connexio);
         adreca1 = new Adreca(1, 1, "principal", "openStreet", "13", null, 1, false);
         adreca2 = new Adreca(2, 2, "secundaria", "openStreet", "1", null, 2, false);
+
+        TelefonTaula.iniciar(connexio, "telefon_club", "club");
+        telefonDAO = new TelefonDAO(connexio);
+        telefon1 = new Telefon(1, 1, "+034", "972460000", "Oficina", false);
+        telefon2 = new Telefon(2, 2, "+034", "930800000", "Delegació", false);
     }
 
     @Test
@@ -314,6 +327,90 @@ public class InformacioContacteTest {
         adrecaDAO.emmagatzemar(adreca2, "adreca_club");
         List<Adreca> adreces = adrecaDAO.obtenirTotPerPropietari("adreca_club",1L);
         assertEquals(1, adreces.size());
+    }
+
+    @Test
+    @Order(21)
+    public void testEmmagatzemarTelefon() throws SQLException {
+        boolean resultat = false;
+        telefonDAO.emmagatzemar(telefon1, "telefon_club");
+        String sentenciaSQL = "SELECT numero FROM telefon_club";
+        Statement statement = connexio.createStatement();
+        ResultSet resultSet = statement.executeQuery(sentenciaSQL);
+        while(resultSet.next()) {
+            resultat = true;
+            assertEquals(resultSet.getString("numero"), telefon1.getNumero());
+        }
+        assertTrue(resultat);
+    }
+
+    @Test
+    @Order(22)
+    public void testModificarTelefon() throws SQLException {
+        boolean resultat = false;
+        String telefonNou = "972464646";
+        telefon1.setNumero(telefonNou);
+        telefonDAO.modificar(telefon1, "telefon_club");
+        String sentenciaSQL = "SELECT numero FROM telefon_club";
+        Statement statement = connexio.createStatement();
+        ResultSet resultSet = statement.executeQuery(sentenciaSQL);
+        while(resultSet.next()) {
+            resultat = true;
+            assertEquals(resultSet.getString("numero"), telefonNou);
+        }
+        assertTrue(resultat);
+    }
+
+    @Test
+    @Order(23)
+    public void testEliminarTelefon() throws SQLException {
+        boolean resultat = false;
+        telefonDAO.eliminar(1L, "telefon_club");
+        String sentenciaSQL = "SELECT eliminat FROM telefon_club WHERE id = 1";
+        Statement statement = connexio.createStatement();
+        ResultSet resultSet = statement.executeQuery(sentenciaSQL);
+        while (resultSet.next()) {
+            resultat = true;
+            assertTrue(resultSet.getBoolean("eliminat"));
+        }
+        assertTrue(resultat);
+    }
+
+    @Test
+    @Order(24)
+    public void testRestaurarTelefon() throws SQLException {
+        boolean resultat = false;
+        telefonDAO.restaurar(1L, "telefon_club");
+        String sentenciaSQL = "SELECT eliminat FROM telefon_club WHERE id = 1";
+        Statement statement = connexio.createStatement();
+        ResultSet resultSet = statement.executeQuery(sentenciaSQL);
+        while (resultSet.next()) {
+            resultat = true;
+            assertFalse(resultSet.getBoolean("eliminat"));
+        }
+        assertTrue(resultat);
+    }
+
+    @Test
+    @Order(25)
+    public void testObtenirTelefon() {
+        Telefon telefonObtingut = telefonDAO.obtenir(1L, "telefon_club");
+        assertEquals(telefonObtingut, telefon1);
+    }
+
+    @Test
+    @Order(26)
+    public void testObtenirTelefons() {
+        telefonDAO.emmagatzemar(telefon2, "telefon_club");
+        List<Telefon> telefons = telefonDAO.obtenirTot("telefon_club");
+        assertEquals(2, telefons.size());
+    }
+
+    @Test
+    @Order(27)
+    public void testObtenirTelefonsPerPropietari() {
+        List<Telefon> telefons = telefonDAO.obtenirTotPerPropietari("telefon_club", 2L);
+        assertEquals(1, telefons.size());
     }
 
     @AfterAll

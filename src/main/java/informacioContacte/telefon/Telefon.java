@@ -1,5 +1,7 @@
 package main.java.informacioContacte.telefon;
 
+import java.util.Objects;
+
 /**
  * Telefons usuaris
  *
@@ -43,4 +45,18 @@ public class Telefon {
 
     public boolean esEliminat() { return eliminat; }
     public void setEliminat(boolean eliminat) { this.eliminat = eliminat; }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Telefon telefon = (Telefon) o;
+        return id == telefon.id && idPropietari == telefon.idPropietari;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, idPropietari);
+    }
+
 }

@@ -16,8 +16,7 @@ public class PoblacioTaula {
         String campsAdreca = "id SERIAL PRIMARY KEY, " +
                 "codi_postal VARCHAR(10) NOT NULL, " +
                 "nom VARCHAR(50) NOT NULL, " +
-                "id_provincia BIGINT NOT NULL, " +
-                "CONSTRAINT fk_id_provincia FOREIGN KEY (id_provincia) REFERENCES provincia(id)";
+                "id_provincia BIGINT REFERENCES provincia(id)";
 
         JDBC.iniciarTaula(connexio, NOM_TAULA, campsAdreca);
     }
