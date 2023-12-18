@@ -11,7 +11,7 @@ import java.sql.Connection;
  * @author Miquel A Fajardo <miquel.fajardo@protonmail.com>
  */
 public class AdrecaTaula {
-    public void iniciar(Connection connexio, String nomTaula, String referenciat) {
+    public static void iniciar(Connection connexio, String nomTaula, String referenciat) {
         String campsAdreca = "id SERIAL PRIMARY KEY, " +
                              "tipus VARCHAR(10) NOT NULL, " +
                              "nom_carrer VARCHAR(50) NOT NULL, " +

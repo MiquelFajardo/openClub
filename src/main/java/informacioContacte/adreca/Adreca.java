@@ -1,5 +1,9 @@
 package main.java.informacioContacte.adreca;
 
+import main.java.informacioContacte.poblacio.Provincia;
+
+import java.util.Objects;
+
 /**
  * Dades adreça usuari
  *
@@ -53,4 +57,28 @@ public class Adreca {
 
     public boolean esEliminat() { return eliminat; }
     public void setEliminat(boolean eliminat) { this.eliminat = eliminat; }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        Adreca altreAdreca = (Adreca) obj;
+        return id == altreAdreca.id
+                && idPropietari == altreAdreca.idPropietari
+                && idPoblacio == altreAdreca.idPoblacio
+                && eliminat == altreAdreca.eliminat
+                && Objects.equals(tipus, altreAdreca.tipus)
+                && Objects.equals(nomCarrer, altreAdreca.nomCarrer)
+                && Objects.equals(numero, altreAdreca.numero)
+                && Objects.equals(pis, altreAdreca.pis);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, idPropietari, tipus, nomCarrer, numero, pis, idPoblacio, eliminat);
+    }
 }

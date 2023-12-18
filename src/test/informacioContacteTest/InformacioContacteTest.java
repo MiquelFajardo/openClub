@@ -1,14 +1,20 @@
 package test.informacioContacteTest;
 
 
+import main.java.club.Club;
+import main.java.club.ClubDAO;
+import main.java.club.ClubTaula;
+import main.java.informacioContacte.adreca.Adreca;
+import main.java.informacioContacte.adreca.AdrecaDAO;
+import main.java.informacioContacte.adreca.AdrecaTaula;
 import main.java.informacioContacte.poblacio.*;
 import org.junit.jupiter.api.*;
 
 import java.sql.*;
+import java.time.LocalDate;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Test informacio Contacte
@@ -19,6 +25,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class InformacioContacteTest {
     private static Connection connexio;
+
+    final static String NOM_CLUB = "UD openClub";
+    private static Club club;
+    private static Club club2;
+    private static ClubDAO clubDAO;
 
     private static Pais pais1;
     private static Pais pais2;
@@ -32,9 +43,20 @@ public class InformacioContacteTest {
     private static Poblacio poblacio2;
     private static PoblacioDAO poblacioDAO;
 
+    private static Adreca adreca1;
+    private static Adreca adreca2;
+    private static AdrecaDAO adrecaDAO;
+
     @BeforeAll
     public static void setupTest() throws SQLException {
         connexio = DriverManager.getConnection("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1");
+
+        ClubTaula.iniciar(connexio);
+        clubDAO = new ClubDAO(connexio);
+        club = new Club(1L, NOM_CLUB, "www.openclub.cat", "/escut.jpg", "GI17000000",  LocalDate.of(2020, 6,2), false);
+        club2 = new Club(1L, NOM_CLUB, "www.openclub.cat", "/escut.jpg", "GI17000000",  LocalDate.of(2020, 6,2), false);
+        clubDAO.emmagatzemar(club);
+        clubDAO.emmagatzemar(club2);
 
         PaisTaula.iniciar(connexio);
         paisDAO = new PaisDAO(connexio);
@@ -50,6 +72,11 @@ public class InformacioContacteTest {
         poblacioDAO = new PoblacioDAO(connexio);
         poblacio1 = new Poblacio(1, "17244", "Cassa de la Selva", 1);
         poblacio2 = new Poblacio(2, "17003", "Girona", 1);
+
+        AdrecaTaula.iniciar(connexio, "adreca_club", "club");
+        adrecaDAO = new AdrecaDAO(connexio);
+        adreca1 = new Adreca(1, 1, "principal", "openStreet", "13", null, 1, false);
+        adreca2 = new Adreca(2, 2, "secundaria", "openStreet", "1", null, 2, false);
     }
 
     @Test
@@ -195,6 +222,98 @@ public class InformacioContacteTest {
         poblacioDAO.emmagatzemar(poblacio2);
         List<Poblacio> poblacions = poblacioDAO.obtenirTot();
         assertEquals(2, poblacions.size());
+    }
+
+    @Test
+    @Order(13)
+    public void testEmmagatzemarAdreca() throws SQLException {
+        boolean resultat = false;
+        adrecaDAO.emmagatzemar(adreca1, "adreca_club");
+        String sentenciaSQL = "SELECT nom_carrer FROM adreca_club";
+        Statement statement = connexio.createStatement();
+        ResultSet resultSet = statement.executeQuery(sentenciaSQL);
+        while (resultSet.next()) {
+            resultat = true;
+            assertEquals(adreca1.getNomCarrer(), resultSet.getString("nom_carrer"));
+        }
+        assertTrue(resultat);
+    }
+
+    @Test
+    @Order(14)
+    public void testModificarAdreca() throws SQLException {
+        boolean resultat = false;
+        String nomNou = "mediterrani";
+        adreca1.setNomCarrer(nomNou);
+        adrecaDAO.modificar(adreca1, "adreca_club");
+        String sentenciaSQL = "SELECT nom_carrer FROM adreca_club";
+        Statement statement = connexio.createStatement();
+        ResultSet resultSet = statement.executeQuery(sentenciaSQL);
+        while (resultSet.next()) {
+            resultat = true;
+            assertEquals(nomNou, resultSet.getString("nom_carrer"));
+        }
+        assertTrue(resultat);
+    }
+
+    @Test
+    @Order(15)
+    public void testEliminarAdreca() throws SQLException {
+        boolean resultat = false;
+        adrecaDAO.eliminar(1L, "adreca_club");
+        String sentenciaSQL = "SELECT eliminat FROM adreca_club WHERE id = 1";
+        Statement statement = connexio.createStatement();
+        ResultSet resultSet = statement.executeQuery(sentenciaSQL);
+        while (resultSet.next()) {
+            resultat = true;
+            assertTrue(resultSet.getBoolean("eliminat"));
+        }
+        assertTrue(resultat);
+    }
+
+    @Test
+    @Order(16)
+    public void testObtenirAdrecaEliminada() {
+        Adreca adrecaObtinguda = adrecaDAO.obtenir(1L, "adreca_club");
+        assertNull(adrecaObtinguda);
+    }
+
+    @Test
+    @Order(17)
+    public void testRestaurarAdreca() throws SQLException {
+        boolean resultat = false;
+        adrecaDAO.restaurar(1L, "adreca_club");
+        String sentenciaSQL = "SELECT eliminat FROM adreca_club WHERE id = 1";
+        Statement statement = connexio.createStatement();
+        ResultSet resultSet = statement.executeQuery(sentenciaSQL);
+        while (resultSet.next()) {
+            resultat = true;
+            assertFalse(resultSet.getBoolean("eliminat"));
+        }
+        assertTrue(resultat);
+    }
+
+    @Test
+    @Order(18)
+    public void testObtenirAdreca() {
+        Adreca adrecaObtinguda = adrecaDAO.obtenir(1L, "adreca_club");
+        assertEquals(adreca1, adrecaObtinguda);
+    }
+
+    @Test
+    @Order(19)
+    public void testObtenirAdreces() {
+        adrecaDAO.emmagatzemar(adreca2, "adreca_club");
+        List<Adreca> adreces = adrecaDAO.obtenirTot("adreca_club");
+        assertEquals(2, adreces.size());
+    }
+
+    @Test
+    @Order(20)
+    public void testObtenirAdrecesPerPropietari() {
+        adrecaDAO.emmagatzemar(adreca2, "adreca_club");
+        List<Adreca> adreces = adrecaDAO.obtenirTotPerPropietari("adreca_club",1L);
+        assertEquals(1, adreces.size());
     }
 
     @AfterAll
