@@ -4,12 +4,15 @@ import java.sql.*;
 import java.time.LocalDate;
 import java.util.List;
 
+import main.java.areaEsportiva.temporada.Temporada;
+import main.java.areaEsportiva.temporada.TemporadaDAO;
+import main.java.areaEsportiva.temporada.TemporadaTaula;
 import main.java.club.Club;
 import main.java.club.ClubDAO;
 import main.java.club.ClubTaula;
-import main.java.seccio.Seccio;
-import main.java.seccio.SeccioDAO;
-import main.java.seccio.SeccioTaula;
+import main.java.areaEsportiva.seccio.Seccio;
+import main.java.areaEsportiva.seccio.SeccioDAO;
+import main.java.areaEsportiva.seccio.SeccioTaula;
 import org.junit.jupiter.api.*;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -32,6 +35,10 @@ public class ClubTest {
     private static Seccio seccio2;
     private static SeccioDAO seccioDAO;
 
+    private static Temporada temporada1;
+    private static Temporada temporada2;
+    private static TemporadaDAO temporadaDAO;
+
     @BeforeAll
     public static void setupTest() throws SQLException {
         connexio = DriverManager.getConnection("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1");
@@ -45,6 +52,11 @@ public class ClubTest {
         seccioDAO = new SeccioDAO(connexio);
         seccio1 = new Seccio(1L,1L, "Futbol", false);
         seccio2 = new Seccio(2L,1L, "Basquet", false);
+
+        TemporadaTaula.iniciar(connexio);
+        temporadaDAO = new TemporadaDAO(connexio);
+        temporada1 = new Temporada(1L, 1L, "2022-2023", false);
+        temporada2 = new Temporada(1L, 1L, "2023-2024", false);
     }
 
     @Test
@@ -200,6 +212,84 @@ public class ClubTest {
         List<Seccio> seccions = seccioDAO.obtenirTot();
         assertEquals(2, seccions.size());
     }
+
+    @Test
+    @Order(13)
+    public void testEmmagatzemarTemporada() throws SQLException {
+        boolean resultat = false;
+        temporadaDAO.emmagatzemar(temporada1);
+        String sentenciaSQL = "SELECT any_temporada FROM temporada";
+        Statement statement = connexio.createStatement();
+        ResultSet resultSet = statement.executeQuery(sentenciaSQL);
+        while (resultSet.next()) {
+            resultat = true;
+            assertEquals(resultSet.getString("any_temporada"), temporada1.getAny());
+        }
+        assertTrue(resultat);
+    }
+
+    @Test
+    @Order(14)
+    public void testModificarTemporada() throws SQLException {
+        boolean resultat = false;
+        String nouAny = "2022";
+        temporada1.setAny(nouAny);
+        temporadaDAO.modificar(temporada1);
+        String sentenciaSQL = "SELECT any_temporada FROM temporada";
+        Statement statement = connexio.createStatement();
+        ResultSet resultSet = statement.executeQuery(sentenciaSQL);
+        while (resultSet.next()) {
+            resultat = true;
+            assertEquals(resultSet.getString("any_temporada"),nouAny);
+        }
+        assertTrue(resultat);
+    }
+
+    @Test
+    @Order(15)
+    public void testEliminarTemporada() throws SQLException {
+        boolean resultat = false;
+        temporadaDAO.eliminar(1L);
+        String sentenciaSQL = "SELECT eliminat FROM temporada";
+        Statement statement = connexio.createStatement();
+        ResultSet resultSet = statement.executeQuery(sentenciaSQL);
+        while (resultSet.next()) {
+            resultat = true;
+            assertTrue(resultSet.getBoolean("eliminat"));
+        }
+        assertTrue(resultat);
+    }
+
+    @Test
+    @Order(16)
+    public void testRestaurarTemporada() throws SQLException {
+        boolean resultat = false;
+        temporadaDAO.restaurar(1L);
+        String sentenciaSQL = "SELECT eliminat FROM temporada";
+        Statement statement = connexio.createStatement();
+        ResultSet resultSet = statement.executeQuery(sentenciaSQL);
+        while (resultSet.next()) {
+            resultat = true;
+            assertFalse(resultSet.getBoolean("eliminat"));
+        }
+        assertTrue(resultat);
+    }
+
+    @Test
+    @Order(17)
+    public void testObtenirTemporada() {
+        Temporada temporadaObtinguda = temporadaDAO.obtenir(1L);
+        assertEquals(temporadaObtinguda, temporada1);
+    }
+
+    @Test
+    @Order(18)
+    public void testObtenirTotesLesTemporades() {
+        temporadaDAO.emmagatzemar(temporada2);
+        List<Temporada> temporades = temporadaDAO.obtenirTot();
+        assertEquals(2, temporades.size());
+    }
+
 
     @AfterAll
     public static void tancament() throws SQLException {

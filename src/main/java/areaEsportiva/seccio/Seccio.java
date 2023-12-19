@@ -1,4 +1,4 @@
-package main.java.seccio;
+package main.java.areaEsportiva.seccio;
 
 import java.util.Objects;
 

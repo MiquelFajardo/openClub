@@ -1,4 +1,4 @@
-package main.java.seccio;
+package main.java.areaEsportiva.seccio;
 
 import main.java.utilitats.JDBC;
 
