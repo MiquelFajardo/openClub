@@ -7,6 +7,9 @@ import main.java.club.ClubTaula;
 import main.java.informacioContacte.adreca.Adreca;
 import main.java.informacioContacte.adreca.AdrecaDAO;
 import main.java.informacioContacte.adreca.AdrecaTaula;
+import main.java.informacioContacte.correuElectronic.CorreuElectronic;
+import main.java.informacioContacte.correuElectronic.CorreuElectronicDAO;
+import main.java.informacioContacte.correuElectronic.CorreuElectronicTaula;
 import main.java.informacioContacte.poblacio.*;
 import main.java.informacioContacte.telefon.Telefon;
 import main.java.informacioContacte.telefon.TelefonDAO;
@@ -54,6 +57,9 @@ public class InformacioContacteTest {
     private static Telefon telefon2;
     private static TelefonDAO telefonDAO;
 
+    private static CorreuElectronic correuElectronic1;
+    private static CorreuElectronic correuElectronic2;
+    private static CorreuElectronicDAO correuElectronicDAO;
 
     @BeforeAll
     public static void setupTest() throws SQLException {
@@ -90,6 +96,11 @@ public class InformacioContacteTest {
         telefonDAO = new TelefonDAO(connexio);
         telefon1 = new Telefon(1, 1, "+034", "972460000", "Oficina", false);
         telefon2 = new Telefon(2, 2, "+034", "930800000", "Delegació", false);
+
+        CorreuElectronicTaula.iniciar(connexio, "correu_electronic_club", "club");
+        correuElectronicDAO = new CorreuElectronicDAO(connexio);
+        correuElectronic1 = new CorreuElectronic(1, 1, "info@openClub.cat", "principal", false);
+        correuElectronic2 = new CorreuElectronic(1, 1, "alta@openClub.cat", "altes", false);
     }
 
     @Test
@@ -411,6 +422,92 @@ public class InformacioContacteTest {
     public void testObtenirTelefonsPerPropietari() {
         List<Telefon> telefons = telefonDAO.obtenirTotPerPropietari("telefon_club", 2L);
         assertEquals(1, telefons.size());
+    }
+
+    @Test
+    @Order(28)
+    public void testEmmagatzemarCorreuElectronic() throws SQLException {
+        boolean resultat = false;
+        correuElectronicDAO.emmagatzemar(correuElectronic1, "correu_electronic_club");
+        String sentenciaSQL = "SELECT adreca FROM correu_electronic_club";
+        Statement statement = connexio.createStatement();
+        ResultSet resultSet = statement.executeQuery(sentenciaSQL);
+        while (resultSet.next()) {
+            resultat = true;
+            assertEquals(resultSet.getString("adreca"), correuElectronic1.getAdreca());
+        }
+        assertTrue(resultat);
+    }
+
+    @Test
+    @Order(29)
+    public void testModificarCorreuElectronic() throws SQLException {
+        boolean resultat = false;
+        String novaAdreca = "hola@openclub.cat";
+        correuElectronic1.setAdreca(novaAdreca);
+        correuElectronicDAO.modificar(correuElectronic1, "correu_electronic_club");
+        String sentenciaSQL = "SELECT adreca FROM correu_electronic_club";
+        Statement statement = connexio.createStatement();
+        ResultSet resultSet = statement.executeQuery(sentenciaSQL);
+        while (resultSet.next()) {
+            resultat = true;
+            assertEquals(resultSet.getString("adreca"), novaAdreca);
+        }
+        assertTrue(resultat);
+    }
+
+    @Test
+    @Order(30)
+    public void testEliminarCorreuElectronic() throws SQLException {
+        boolean resultat = false;
+        correuElectronicDAO.eliminar(1L,"correu_electronic_club");
+        String sentenciaSQL = "SELECT eliminat FROM correu_electronic_club";
+        Statement statement = connexio.createStatement();
+        ResultSet resultSet = statement.executeQuery(sentenciaSQL);
+        while (resultSet.next()) {
+            resultat = true;
+            assertTrue(resultSet.getBoolean("eliminat"));
+        }
+        assertTrue(resultat);
+    }
+
+    @Test
+    @Order(31)
+    public void testRestaurarCorreuElectronic() throws SQLException {
+        boolean resultat = false;
+        correuElectronicDAO.restaurar(1L,"correu_electronic_club");
+        String sentenciaSQL = "SELECT eliminat FROM correu_electronic_club";
+        Statement statement = connexio.createStatement();
+        ResultSet resultSet = statement.executeQuery(sentenciaSQL);
+        while (resultSet.next()) {
+            resultat = true;
+            assertFalse(resultSet.getBoolean("eliminat"));
+        }
+        assertTrue(resultat);
+    }
+
+     @Test
+     @Order(32)
+     public void testObtenirCorreuElectronic() {
+        CorreuElectronic correuElectronicObtingut = correuElectronicDAO.obtenir(1L, "correu_electronic_club");
+        assertEquals(correuElectronic1, correuElectronicObtingut);
+     }
+
+    @Test
+    @Order(33)
+    public void testObtenirTotsElsCorreuElectronic() {
+        correuElectronicDAO.emmagatzemar(correuElectronic2, "correu_electronic_club");
+        List<CorreuElectronic> correuElectronics = correuElectronicDAO.obtenirTot("correu_electronic_club");
+        assertEquals(2, correuElectronics.size());
+    }
+
+    @Test
+    @Order(34)
+    public void testObtenirTotsElsCorreuElectronicPerPropietari() {
+        List<CorreuElectronic> correuElectronics = correuElectronicDAO.obtenirTotPerPropietari("correu_electronic_club",1L);
+        assertEquals(2, correuElectronics.size());
+        List<CorreuElectronic> noCorreuElectronics = correuElectronicDAO.obtenirTotPerPropietari("correu_electronic_club",10L);
+        assertEquals(0, noCorreuElectronics.size());
     }
 
     @AfterAll
