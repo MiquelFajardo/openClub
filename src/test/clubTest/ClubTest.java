@@ -3,18 +3,13 @@ package test.clubTest;
 import java.sql.*;
 import java.time.LocalDate;
 import java.util.List;
-
-import main.java.areaEsportiva.temporada.Temporada;
-import main.java.areaEsportiva.temporada.TemporadaDAO;
-import main.java.areaEsportiva.temporada.TemporadaTaula;
-import main.java.club.Club;
-import main.java.club.ClubDAO;
-import main.java.club.ClubTaula;
-import main.java.areaEsportiva.seccio.Seccio;
-import main.java.areaEsportiva.seccio.SeccioDAO;
-import main.java.areaEsportiva.seccio.SeccioTaula;
 import org.junit.jupiter.api.*;
 import static org.junit.jupiter.api.Assertions.*;
+
+import main.java.areaEsportiva.equip.*;
+import main.java.areaEsportiva.temporada.*;
+import main.java.club.*;
+import main.java.areaEsportiva.seccio.*;
 
 /**
  * Test de la classe Club, secció
@@ -39,6 +34,10 @@ public class ClubTest {
     private static Temporada temporada2;
     private static TemporadaDAO temporadaDAO;
 
+    private static Equip equip1;
+    private static Equip equip2;
+    private static EquipDAO equipDAO;
+
     @BeforeAll
     public static void setupTest() throws SQLException {
         connexio = DriverManager.getConnection("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1");
@@ -57,6 +56,11 @@ public class ClubTest {
         temporadaDAO = new TemporadaDAO(connexio);
         temporada1 = new Temporada(1L, 1L, "2022-2023", false);
         temporada2 = new Temporada(1L, 1L, "2023-2024", false);
+
+        EquipTaula.iniciar(connexio);
+        equipDAO = new EquipDAO(connexio);
+        equip1 = new Equip(1L,1L, "Infantil A", "Primera", "17", false);
+        equip2 = new Equip(2L,1L, "Infantil B", "Segona", "34", false);
     }
 
     @Test
@@ -290,6 +294,82 @@ public class ClubTest {
         assertEquals(2, temporades.size());
     }
 
+    @Test
+    @Order(19)
+    public void testEmmagatzemarEquip () throws SQLException {
+        boolean resultat = false;
+        equipDAO.emmagatzemar(equip1);
+        String sentenciaSQL = "SELECT nom FROM equip";
+        Statement statement = connexio.createStatement();
+        ResultSet resultSet = statement.executeQuery(sentenciaSQL);
+        while (resultSet.next()) {
+            resultat = true;
+            assertEquals(resultSet.getString("nom"), "Infantil A");
+        }
+        assertTrue(resultat);
+    }
+
+    @Test
+    @Order(20)
+    public void testModificarEquip () throws SQLException {
+        boolean resultat = false;
+        String nouNom = "Cadet A";
+        equip1.setNom(nouNom);
+        equipDAO.modificar(equip1);
+        String sentenciaSQL = "SELECT nom FROM equip";
+        Statement statement = connexio.createStatement();
+        ResultSet resultSet = statement.executeQuery(sentenciaSQL);
+        while (resultSet.next()) {
+            resultat = true;
+            assertEquals(resultSet.getString("nom"), nouNom);
+        }
+        assertTrue(resultat);
+    }
+
+    @Test
+    @Order(21)
+    public void testEliminarEquip () throws SQLException {
+        boolean resultat = false;
+        equipDAO.eliminar(1L);
+        String sentenciaSQL = "SELECT eliminat FROM equip";
+        Statement statement = connexio.createStatement();
+        ResultSet resultSet = statement.executeQuery(sentenciaSQL);
+        while (resultSet.next()) {
+            resultat = true;
+            assertTrue(resultSet.getBoolean("eliminat"));
+        }
+        assertTrue(resultat);
+    }
+
+    @Test
+    @Order(22)
+    public void testRestaurarEquip () throws SQLException {
+        boolean resultat = false;
+        equipDAO.restaurar(1L);
+        String sentenciaSQL = "SELECT eliminat FROM equip";
+        Statement statement = connexio.createStatement();
+        ResultSet resultSet = statement.executeQuery(sentenciaSQL);
+        while (resultSet.next()) {
+            resultat = true;
+            assertFalse(resultSet.getBoolean("eliminat"));
+        }
+        assertTrue(resultat);
+    }
+
+    @Test
+    @Order(23)
+    public void testObtenirEquip() {
+        Equip equipObtingut = equipDAO.obtenir(1L);
+        assertEquals(equipObtingut.getCategoria(), "Primera");
+    }
+
+    @Test
+    @Order(24)
+    public void testObtenirTotsElsEquips() {
+        equipDAO.emmagatzemar(equip2);
+        List<Equip> equips = equipDAO.obtenirTot();
+        assertEquals(2, equips.size());
+    }
 
     @AfterAll
     public static void tancament() throws SQLException {

@@ -3,7 +3,7 @@ package main.java.areaEsportiva.temporada;
 import java.util.Objects;
 
 /**
- * Clase amb les dades de les temporades
+ * Classe amb les dades de les temporades
  *
  * @author Miquel A Fajardo <miquel.fajardo@protonmail.com>
  */
