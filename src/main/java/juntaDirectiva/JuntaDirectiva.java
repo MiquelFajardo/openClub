@@ -1,4 +1,4 @@
-package main.java.juntaDIrectiva;
+package main.java.juntaDirectiva;
 
 import java.time.LocalDate;
 import java.util.Objects;

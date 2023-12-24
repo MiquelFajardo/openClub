@@ -1,4 +1,4 @@
-package main.java.juntaDIrectiva;
+package main.java.juntaDirectiva;
 
 import main.java.utilitats.JDBC;
 
