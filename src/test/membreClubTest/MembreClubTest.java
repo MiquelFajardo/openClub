@@ -16,7 +16,6 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-
 public class MembreClubTest {
     private static Connection connexio;
 
