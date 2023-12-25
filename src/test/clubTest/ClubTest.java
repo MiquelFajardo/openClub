@@ -2,8 +2,12 @@ package test.clubTest;
 
 import java.sql.*;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
+import main.java.areaEsportiva.equipTecnic.EquipTecnic;
+import main.java.areaEsportiva.equipTecnic.EquipTecnicDAO;
+import main.java.areaEsportiva.equipTecnic.EquipTecnicTaula;
 import main.java.areaEsportiva.jugador.Jugador;
 import main.java.areaEsportiva.jugador.JugadorDAO;
 import main.java.areaEsportiva.jugador.JugadorTaula;
@@ -53,6 +57,10 @@ public class ClubTest {
     private static Jugador jugador2;
     private static JugadorDAO jugadorDAO;
 
+    private static EquipTecnic equipTecnic1;
+    private static EquipTecnic equipTecnic2;
+    private static EquipTecnicDAO equipTecnicDAO;
+
     @BeforeAll
     public static void setupTest() throws SQLException {
         connexio = DriverManager.getConnection("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1");
@@ -91,6 +99,11 @@ public class ClubTest {
         jugadorDAO = new JugadorDAO(connexio);
         jugador1 = new Jugador(1L, 1L, 1L, 6, true, false);
         jugador2 = new Jugador(2L, 2L, 2L, 8, true, false);
+
+        EquipTecnicTaula.iniciar(connexio);
+        equipTecnicDAO = new EquipTecnicDAO(connexio);
+        equipTecnic1 = new EquipTecnic(1L, 1L, 1L, "Entrenador", true, false);
+        equipTecnic2 = new EquipTecnic(2L, 2L, 2L, "Segon entrenador", true, false);
     }
 
     @Test
@@ -487,6 +500,92 @@ public class ClubTest {
         List<Jugador> jugadors2 = jugadorDAO.obtenirTotPerEquip(2L);
         assertEquals(1, jugadors1.size());
         assertEquals(1, jugadors2.size());
+    }
+
+    @Test
+    @Order(32)
+    public void testEmmagatzemarEquipTecnic() throws SQLException {
+        boolean resultat = false;
+        equipTecnicDAO.emmagatzemar(equipTecnic1);
+        String sentenciaSQL = "SELECT carrec FROM equip_tecnic";
+        Statement statement = connexio.createStatement();
+        ResultSet resultSet = statement.executeQuery(sentenciaSQL);
+        while (resultSet.next()) {
+            resultat = true;
+            assertEquals(resultSet.getString("carrec"), equipTecnic1.getCarrec());
+        }
+        assertTrue(resultat);
+    }
+
+    @Test
+    @Order(33)
+    public void testModificarEquipTecnic() throws SQLException {
+        boolean resultat = false;
+        String nouCarrec = "Delegat";
+        equipTecnic1.setCarrec(nouCarrec);
+        equipTecnicDAO.modificar(equipTecnic1);
+        String sentenciaSQL = "SELECT carrec FROM equip_tecnic";
+        Statement statement = connexio.createStatement();
+        ResultSet resultSet = statement.executeQuery(sentenciaSQL);
+        while (resultSet.next()) {
+            resultat = true;
+            assertEquals(resultSet.getString("carrec"), nouCarrec);
+        }
+        assertTrue(resultat);
+    }
+
+    @Test
+    @Order(34)
+    public void testEliminarEquipTecnic() throws SQLException {
+        boolean resultat = false;
+        equipTecnicDAO.eliminar(1L);
+        String sentenciaSQL = "SELECT eliminat FROM equip_tecnic";
+        Statement statement = connexio.createStatement();
+        ResultSet resultSet = statement.executeQuery(sentenciaSQL);
+        while (resultSet.next()) {
+            resultat = true;
+            assertTrue(resultSet.getBoolean("eliminat"));
+        }
+        assertTrue(resultat);
+    }
+
+    @Test
+    @Order(35)
+    public void testRestaurarEquipTecnic() throws SQLException {
+        boolean resultat = false;
+        equipTecnicDAO.restaurar(1L);
+        String sentenciaSQL = "SELECT eliminat FROM equip_tecnic";
+        Statement statement = connexio.createStatement();
+        ResultSet resultSet = statement.executeQuery(sentenciaSQL);
+        while (resultSet.next()) {
+            resultat = true;
+            assertFalse(resultSet.getBoolean("eliminat"));
+        }
+        assertTrue(resultat);
+    }
+
+    @Test
+    @Order(36)
+    public void testObtenirEquipTecnic() {
+        EquipTecnic equipTecnicObtingut = equipTecnicDAO.obtenir(1L);
+        assertEquals(equipTecnicObtingut, equipTecnic1);
+    }
+
+    @Test
+    @Order(37)
+    public void testObtenirTotsElsEquipsTecnics() {
+        equipTecnicDAO.emmagatzemar(equipTecnic2);
+        List<EquipTecnic> equipTecnics = equipTecnicDAO.obtenirTot();
+        assertEquals(2, equipTecnics.size());
+    }
+
+    @Test
+    @Order(38)
+    public void testObtenirTotsElsEquipsTecnicsPerEquip() {
+        List<EquipTecnic> equipTecnics1 = equipTecnicDAO.obtenirTotPerEquip(1L);
+        List<EquipTecnic> equipTecnics2 = equipTecnicDAO.obtenirTotPerEquip(2L);
+        assertEquals(1, equipTecnics1.size());
+        assertEquals(1, equipTecnics2.size());
     }
 
     @AfterAll
