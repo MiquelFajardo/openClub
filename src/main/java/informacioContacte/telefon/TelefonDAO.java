@@ -1,4 +1,4 @@
-package main.java.informacioContacte.adreca;
+package main.java.informacioContacte.telefon;
 
 import main.java.persistencia.InterficieExtensaDAO;
 import main.java.utilitats.Logs;
@@ -11,26 +11,24 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Implementació del patró DAO a la classe Adreca
+ * Implementació DAO de la classe Telèfon
  *
  * @author Miquel A Fajardo <miquel.fajardo@protonmail.com>
  */
-public class AdrecaDAO implements InterficieExtensaDAO<Adreca> {
-    final static String ARXIU_LOG = "adrecaDAO.log";
+public class TelefonDAO implements InterficieExtensaDAO<Telefon> {
+    final static String ARXIU_LOG = "telefonDAO.log";
     private final Connection connexio;
-    public AdrecaDAO(Connection connexio) { this.connexio = connexio; }
+    public TelefonDAO(Connection connexio) { this.connexio = connexio; }
 
     @Override
-    public void emmagatzemar(Adreca adreca, String nomTaula) {
-        String sentenciaSQL = "INSERT INTO " + nomTaula + " (tipus, nom_carrer, numero, pis, id_propietari, id_poblacio) VALUES (?, ?, ?, ?, ?, ?)";
+    public void emmagatzemar(Telefon telefon, String nomTaula) {
+        String sentenciaSQL = "INSERT INTO " + nomTaula + " (id_propietari, prefix_pais, numero, tipus) VALUES (?, ?, ?, ?)";
         try {
             PreparedStatement preparedStatement = connexio.prepareStatement(sentenciaSQL);
-            preparedStatement.setString(1, adreca.getTipus());
-            preparedStatement.setString(2, adreca.getNomCarrer());
-            preparedStatement.setString(3, adreca.getNumero());
-            preparedStatement.setString(4, adreca.getPis());
-            preparedStatement.setLong(5, adreca.getIdPropietari());
-            preparedStatement.setLong(6, adreca.getIdPoblacio());
+            preparedStatement.setLong(1, telefon.getIdPropietari());
+            preparedStatement.setString(2, telefon.getPrefixPais());
+            preparedStatement.setString(3, telefon.getNumero());
+            preparedStatement.setString(4, telefon.getTipus());
             preparedStatement.executeUpdate();
             preparedStatement.close();
         } catch (SQLException e) {
@@ -39,17 +37,15 @@ public class AdrecaDAO implements InterficieExtensaDAO<Adreca> {
     }
 
     @Override
-    public void modificar(Adreca adreca, String nomTaula) {
-        String sentenciaSQL = "UPDATE " + nomTaula + " SET tipus = ?, nom_carrer = ?, numero = ?, pis = ?, id_propietari = ?, id_poblacio = ? WHERE id = ?";
+    public void modificar(Telefon telefon, String nomTaula) {
+        String sentenciaSQL = "UPDATE " + nomTaula + " SET id_propietari = ?, prefix_pais = ?, numero = ?, tipus = ? WHERE id = ?";
         try {
             PreparedStatement preparedStatement = connexio.prepareStatement(sentenciaSQL);
-            preparedStatement.setString(1, adreca.getTipus());
-            preparedStatement.setString(2, adreca.getNomCarrer());
-            preparedStatement.setString(3, adreca.getNumero());
-            preparedStatement.setString(4, adreca.getPis());
-            preparedStatement.setLong(5, adreca.getIdPropietari());
-            preparedStatement.setLong(6, adreca.getIdPoblacio());
-            preparedStatement.setLong(7, adreca.getId());
+            preparedStatement.setLong(1, telefon.getIdPropietari());
+            preparedStatement.setString(2, telefon.getPrefixPais());
+            preparedStatement.setString(3, telefon.getNumero());
+            preparedStatement.setString(4, telefon.getTipus());
+            preparedStatement.setLong(5, telefon.getId());
             preparedStatement.executeUpdate();
             preparedStatement.close();
         } catch (SQLException e) {
@@ -86,52 +82,53 @@ public class AdrecaDAO implements InterficieExtensaDAO<Adreca> {
     }
 
     @Override
-    public Adreca obtenir(Long id, String nomTaula) {
-        Adreca adreca = null;
-        String sentenciaSQL = "SELECT tipus, nom_carrer, numero, pis, id_propietari, id_poblacio, eliminat FROM " + nomTaula + " WHERE id = ? AND eliminat = ?";
+    public Telefon obtenir(Long id, String nomTaula) {
+        Telefon telefon = null;
+        String sentenciaSQL = "SELECT id_propietari, prefix_pais, numero, tipus, eliminat FROM " + nomTaula + " WHERE id = ? AND eliminat = ?";
         try {
             PreparedStatement preparedStatement = connexio.prepareStatement(sentenciaSQL);
             preparedStatement.setLong(1, id);
             preparedStatement.setBoolean(2, false);
             ResultSet resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
-                adreca = new Adreca();
-                adreca.setId(id);
-                adreca.setTipus(resultSet.getString("tipus"));
-                adreca.setNomCarrer(resultSet.getString("nom_carrer"));
-                adreca.setNumero(resultSet.getString("numero"));
-                adreca.setPis(resultSet.getString("pis"));
-                adreca.setIdPropietari(resultSet.getLong("id_propietari"));
-                adreca.setIdPoblacio(resultSet.getLong("id_poblacio"));
+                telefon = new Telefon();
+                telefon.setId(id);
+                telefon.setIdPropietari(resultSet.getLong("id_propietari"));
+                telefon.setPrefixPais(resultSet.getString("prefix_pais"));
+                telefon.setNumero(resultSet.getString("numero"));
+                telefon.setTipus(resultSet.getString("tipus"));
+                telefon.setEliminat(resultSet.getBoolean("eliminat"));
             }
             preparedStatement.close();
             resultSet.close();
         } catch (SQLException e) {
             Logs.escriure(ARXIU_LOG, "No s'ha pogut obtenir\n" + e);
         }
-        return adreca;
+        return telefon;
     }
 
     @Override
-    public List<Adreca> obtenirTot(String nomTaula) {
-        List<Adreca> adreces = new ArrayList<>();
+    public List<Telefon> obtenirTot(String nomTaula) {
+        List<Telefon> telefons = new ArrayList<>();
         String sentenciaSQL = "SELECT id FROM " + nomTaula + " WHERE eliminat = ?";
         try {
             PreparedStatement preparedStatement = connexio.prepareStatement(sentenciaSQL);
             preparedStatement.setBoolean(1, false);
             ResultSet resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
-                adreces.add(obtenir(resultSet.getLong("id"), nomTaula));
+                telefons.add(obtenir(resultSet.getLong("id"), nomTaula));
             }
+            preparedStatement.close();
+            resultSet.close();
         } catch (SQLException e) {
-            Logs.escriure(ARXIU_LOG, "No s'han pogut obtenir totes\n" + e);
+            Logs.escriure(ARXIU_LOG, "No s'han pogut obtenir\n" + e);
         }
-        return adreces;
+        return telefons;
     }
 
     @Override
-    public List<Adreca> obtenirTotPerPropietari(String nomTaula, Long idPropietari) {
-        List<Adreca> adreces = new ArrayList<>();
+    public List<Telefon> obtenirTotPerPropietari(String nomTaula, Long idPropietari) {
+        List<Telefon> telefons = new ArrayList<>();
         String sentenciaSQL = "SELECT id FROM " + nomTaula + " WHERE id_propietari = ? AND eliminat = ?";
         try {
             PreparedStatement preparedStatement = connexio.prepareStatement(sentenciaSQL);
@@ -139,11 +136,13 @@ public class AdrecaDAO implements InterficieExtensaDAO<Adreca> {
             preparedStatement.setBoolean(2, false);
             ResultSet resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
-                adreces.add(obtenir(resultSet.getLong("id"), nomTaula));
+                telefons.add(obtenir(resultSet.getLong("id"), nomTaula));
             }
+            preparedStatement.close();
+            resultSet.close();
         } catch (SQLException e) {
-            Logs.escriure(ARXIU_LOG, "No s'han pogut obtenir totes\n" + e);
+            Logs.escriure(ARXIU_LOG, "No s'han pogut obtenir per propietari\n" + e);
         }
-        return adreces;
+        return telefons;
     }
 }

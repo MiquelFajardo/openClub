@@ -1,23 +1,21 @@
-package main.java.club;
+package main.java.areaEsportiva.seccio;
 
 import main.java.utilitats.JDBC;
 
 import java.sql.Connection;
 
 /**
- * Taula club
+ * Taula secció
+ *
  * @author Miquel A Fajardo <miquel.fajardo@protonmail.com>
  */
-public class ClubTaula {
-    public static final String NOM_TAULA = "club";
+public class SeccioTaula {
+    public static final String NOM_TAULA = "seccio";
 
     public static void iniciar(Connection connexio) {
         String campsAdreca = "id SERIAL PRIMARY KEY, " +
                 "nom VARCHAR(50) NOT NULL, " +
-                "pagina_web VARCHAR(100), " +
-                "nif VARCHAR(15) NOT NULL, " +
-                "escut VARCHAR(60) NOT NULL, " +
-                "data_creacio DATE NOT NULL, " +
+                "id_club BIGINT REFERENCES club(id), " +
                 "eliminat BOOLEAN NOT NULL DEFAULT FALSE";
 
         JDBC.iniciarTaula(connexio, NOM_TAULA, campsAdreca);

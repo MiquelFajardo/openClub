@@ -1,5 +1,9 @@
 package main.java.informacioContacte.poblacio;
 
+import main.java.club.Club;
+
+import java.util.Objects;
+
 /**
  * Dades dels països
  *
@@ -23,4 +27,21 @@ public class Pais {
 
     public String getNom() { return nom; }
     public void setNom(String nom) { this.nom = nom; }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        Pais altrePais = (Pais) obj;
+        return id == altrePais.id && Objects.equals(nom, altrePais.nom);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, nom);
+    }
 }
