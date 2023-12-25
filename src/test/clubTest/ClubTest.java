@@ -3,6 +3,13 @@ package test.clubTest;
 import java.sql.*;
 import java.time.LocalDate;
 import java.util.List;
+
+import main.java.areaEsportiva.jugador.Jugador;
+import main.java.areaEsportiva.jugador.JugadorDAO;
+import main.java.areaEsportiva.jugador.JugadorTaula;
+import main.java.membreClub.MembreClub;
+import main.java.membreClub.MembreClubDAO;
+import main.java.membreClub.MembreClubTaula;
 import org.junit.jupiter.api.*;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -38,6 +45,14 @@ public class ClubTest {
     private static Equip equip2;
     private static EquipDAO equipDAO;
 
+    private static MembreClub membreClub1;
+    private static MembreClub membreClub2;
+    private static MembreClubDAO membreClubDAO;
+
+    private static Jugador jugador1;
+    private static Jugador jugador2;
+    private static JugadorDAO jugadorDAO;
+
     @BeforeAll
     public static void setupTest() throws SQLException {
         connexio = DriverManager.getConnection("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1");
@@ -61,6 +76,21 @@ public class ClubTest {
         equipDAO = new EquipDAO(connexio);
         equip1 = new Equip(1L,1L, "Infantil A", "Primera", "17", false);
         equip2 = new Equip(2L,1L, "Infantil B", "Segona", "34", false);
+
+        MembreClubTaula.iniciar(connexio);
+        membreClubDAO = new MembreClubDAO(connexio);
+        membreClub1 = new MembreClub(1, "mfajardo", "contrasenya", true, "Miquel", "Fajardo", "Reyes",
+                "40000000A", LocalDate.of(1976,9,29), "foto.jpg", false );
+        membreClub2 = new MembreClub(2, "bfajardo", "contrasenya", true, "Blai", "Fajardo", "Viñolas",
+                "30000000B", LocalDate.of(2011,6,2), "foto.jpg", false );
+        membreClubDAO.emmagatzemar(membreClub1);
+        membreClubDAO.emmagatzemar(membreClub2);
+
+
+        JugadorTaula.iniciar(connexio);
+        jugadorDAO = new JugadorDAO(connexio);
+        jugador1 = new Jugador(1L, 1L, 1L, 6, true, false);
+        jugador2 = new Jugador(2L, 2L, 2L, 8, true, false);
     }
 
     @Test
@@ -369,6 +399,94 @@ public class ClubTest {
         equipDAO.emmagatzemar(equip2);
         List<Equip> equips = equipDAO.obtenirTot();
         assertEquals(2, equips.size());
+    }
+
+    @Test
+    @Order(25)
+    public void testEmmagatzemarJugador() throws SQLException {
+        boolean resultat = false;
+        String sentenciaSQL = "SELECT dorsal FROM jugador";
+        jugadorDAO.emmagatzemar(jugador1);
+        Statement statement = connexio.createStatement();
+        ResultSet resultSet = statement.executeQuery(sentenciaSQL);
+        while (resultSet.next()) {
+            resultat = true;
+            assertEquals(resultSet.getInt("dorsal"), jugador1.getDorsal());
+        }
+        assertTrue(resultat);
+    }
+
+    @Test
+    @Order(26)
+    public void testModificarJugador() throws SQLException {
+        boolean resultat = false;
+        int nouDorsal = 16;
+        jugador1.setDorsal(nouDorsal);
+        jugadorDAO.modificar(jugador1);
+        String sentenciaSQL = "SELECT dorsal FROM jugador";
+        Statement statement = connexio.createStatement();
+        ResultSet resultSet = statement.executeQuery(sentenciaSQL);
+        while (resultSet.next()) {
+            resultat = true;
+            assertEquals(resultSet.getInt("dorsal"), nouDorsal);
+        }
+        assertTrue(resultat);
+    }
+
+    @Test
+    @Order(27)
+    public void testEliminarJugador() throws SQLException {
+        boolean resultat = false;
+        jugadorDAO.eliminar(1L);
+        String sentenciaSQL = "SELECT eliminat FROM jugador WHERE id = ?";
+        PreparedStatement preparedStatement = connexio.prepareStatement(sentenciaSQL);
+        preparedStatement.setLong(1, 1L);
+        ResultSet resultSet = preparedStatement.executeQuery();
+        while (resultSet.next()) {
+            resultat = true;
+            assertTrue(resultSet.getBoolean("eliminat"));
+        }
+        assertTrue(resultat);
+    }
+
+    @Test
+    @Order(28)
+    public void testRestaurarJugador() throws SQLException {
+        boolean resultat = false;
+        jugadorDAO.restaurar(1L);
+        String sentenciaSQL = "SELECT eliminat FROM jugador WHERE id = ?";
+        PreparedStatement preparedStatement = connexio.prepareStatement(sentenciaSQL);
+        preparedStatement.setLong(1, 1L);
+        ResultSet resultSet = preparedStatement.executeQuery();
+        while (resultSet.next()) {
+            resultat = true;
+            assertFalse(resultSet.getBoolean("eliminat"));
+        }
+        assertTrue(resultat);
+    }
+
+    @Test
+    @Order(29)
+    public void testObtenirJugador() {
+        Jugador jugadorObtingut = jugadorDAO.obtenir(1L);
+        assertEquals(jugadorObtingut, jugador1);
+    }
+
+    @Test
+    @Order(30)
+    public void testObtenirTotsElsJugadors() {
+        jugadorDAO.emmagatzemar(jugador2);
+        List<Jugador> jugadors = jugadorDAO.obtenirTot();
+        assertEquals(2, jugadors.size());
+    }
+
+    @Test
+    @Order(31)
+    public void testObtenirTotsElsJugadorsPerEquip() {
+        List<Jugador> jugadors1 = jugadorDAO.obtenirTotPerEquip(1L);
+        List<Jugador> jugadors2 = jugadorDAO.obtenirTotPerEquip(2L);
+        assertEquals(1, jugadors1.size());
+        assertEquals(1, jugadors2.size());
     }
 
     @AfterAll
