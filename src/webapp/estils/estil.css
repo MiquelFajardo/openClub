@@ -1,0 +1,17 @@
+/* Reiniciar */
+@import url(/src/webapp/estils/normalize.css);
+/** INDEX **/
+
+.body-autenticacio {
+    background-image: url(/src/webapp/imatges/imatges_club/escut.jpeg);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    width: 10rem;
+    height: 10rem;
+}
+    
+h1 {
+    font-size: 20rem;
+    color: red;
+}

@@ -4,10 +4,9 @@
     <head>
         <meta charset="UTF-8">
         <meta http-equiv="Content-Type" content="text/html; charsetUTF-8">
-        <link rel="stylesheet" href="estils/estil.css">
+        <link rel="stylesheet" href="/src/webapp/estils/estil.css">
         <title>openClub - autenticació</title>
     </head>
-
     <body id="body-autenticacio">
         <div id="contenidor-autenticacio">
             <h1>openClub</h1>
